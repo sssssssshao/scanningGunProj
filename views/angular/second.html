@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../../plugins/angularJS/angular.js"></script>
+</head>
+<body>
+
+<h1>第三个实例</h1>
+<div ng-app="mainApp" ng-controller="studentController">
+
+    Enter first name: <input type="text" ng-model="student.firstName"><br><br>
+    Enter last name: <input type="text" ng-model="student.lastName"><br>
+    Enter subject: <input type="text" ng-model="subjectName">
+    <br>
+    您输入的名字是: {{student.fullName()}}<br/>
+    Name in Upper Case: {{student.fullName() | uppercase}}<br/>
+    Subject:
+    <ul>
+        <li ng-repeat="subject in student.subjects | filter: subjectName">
+            {{ subject.name + ', marks:' + subject.marks }}
+        </li>
+    </ul>
+    <br/>
+    <input type="checkbox" ng-model="enableDisableButton">Disable Button
+    <button ng-disabled="enableDisableButton">Click Me!</button>
+    <br/>
+    <input type="checkbox" ng-model="showHide1">Show Button
+    <button ng-show="showHide1">Click Me!</button>
+    <br/>
+    <input type="checkbox" ng-model="showHide2">Hide Button
+    <button ng-hide="showHide2">Click Me!</button>
+    <br/>
+    <p>Total click: {{ clickCounter }}</p></td>
+    <button ng-click="clickCounter = clickCounter + 1">Click Me!</button>
+</div>
+<script>
+    var mainApp = angular.module("mainApp", []);
+
+    mainApp.controller('studentController', function($scope) {
+        $scope.student = {
+            firstName: "李",
+            lastName: "刚",
+            subjects: [
+                {name:'语文',marks:70},
+                {name:'数学',marks:10},
+                {name:'英语',marks:20}
+            ],
+            fullName: function() {
+                var studentObject;
+                studentObject = $scope.student;
+                return studentObject.firstName + " " + studentObject.lastName;
+            }
+        };
+    });
+</script>
+</body>
+</html>

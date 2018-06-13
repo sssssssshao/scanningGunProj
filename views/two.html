@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!--<script>window.$ = window.jQuery = require("../plugins/jquery/jquery-3.2.1.js");</script>-->
+    <script>window.$ = window.jQuery = require("../plugins/jquery/jquery-3.2.1.js");</script>
+    <script src="../plugins/bootstrap/js/bootstrap.js"></script>
+    <script src="../plugins/jquery/handlebars-v4.0.10.js"></script>
+    <script src="../plugins/jquery/jquery-3.2.1.js"></script>
+    <link rel="stylesheet" type="text/css" href="../plugins/bootstrap/css/bootstrap.css"/>
+</head>
+<body>
+<div class="container theme-showcase">
+    <div class="page-header">
+        <div class="starter-template">
+            <div class="form-group">
+                <input type="text" class="form-control" id="content"/>
+            </div>
+            <button class="btn btn-default" type="button" id="clearBtn">清空内容</button>
+            <button class="btn btn-default" type="button" id="downloadBtn">下载</button>
+            <h3>分解后的内容：</h3>
+            <div class="tab-content" id="tabContentDiv">
+                <div class="tab-pane fade in active" id="first">
+                    <table class="table" id="showContent">
+                        <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>订单编号</th>
+                            <th>金额</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var xlsx = require("node-xlsx");
+    var fs = require('fs');
+    var contentArray = [['日期','订单编号','金额']];
+    var liHtml = '<li role="presentation" class="active" ><a href="#first" data-toggle="tab">未分类结果</a></li>';
+    $(function () {
+        $('#tabsUl').html(liHtml);
+        $('#clearBtn').on('click', function(){
+            $('#first #showContent tbody').empty();
+            var navHtml = $('#first').prop("outerHTML");
+            $('#tabContentDiv').html(navHtml);
+            $('.tab-content[id!="tabContentDiv"]').remove();
+        });
+        $('#content').focus();
+        $('#content').on('keydown', function () {
+            if (event.keyCode == 13){
+                var value = $(this).val();
+                if (value) {
+                    appendTr('showContent', value);
+                    $(this).val('');
+                    play();
+                }
+            }
+        });
+
+        function appendTr(id, value) {
+            var valArray = value.split('-');
+            contentArray.push(valArray);
+            var result = '<tr id="' + id + '-' + value + '"><td>' + valArray[0] + '</td><td class="result">'+valArray[1]+'</td><td>'+valArray[2]+'</td></tr>';
+            $('#' + id + ' tbody').append(result);
+        }
+        function play(){
+            //非IE内核浏览器
+            var strAudio = "<audio id='audioPlay' src='../resources/水泡提示声音.wav' hidden='true'>";
+            if ( $( "body" ).find( "audio" ).length <= 0 )
+                $( "body" ).append( strAudio );
+            var audio = document.getElementById( "audioPlay" );
+            audio.volume = 1.0;
+            //浏览器支持 audion
+            audio.currentTime = 0;
+            audio.play();
+        }
+
+        $('#downloadBtn').on('click', function(){
+            var buffer = xlsx.build([{name: "sheet1", data: contentArray}]);
+            fs.writeFileSync('b.xlsx', buffer, 'binary');
+        })
+    });
+</script>
+</body>
+</html>

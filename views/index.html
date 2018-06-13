@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script>window.$ = window.jQuery = require("../plugins/jquery/jquery-3.2.1.js");</script>
+    <script src="../plugins/bootstrap/js/bootstrap.js"></script>
+    <link rel="stylesheet" type="text/css" href="../plugins/bootstrap/css/bootstrap.css"/>
+</head>
+<body>
+<div class="container theme-showcase">
+    <div class="page-header">
+        <div class="starter-template">
+            <div class="form-group">
+                <input type="text" class="form-control" id="content"/>
+            </div>
+            <button class="btn btn-default" type="button" id="clearBtn">清空内容</button>
+            <h3>扫描后的内容：</h3>
+            <ul class="nav nav-tabs" id="tabsUl"></ul>
+            <div class="tab-content" id="tabContentDiv">
+                <div class="tab-pane fade in active" id="first">
+                    <table class="table" id="showContent">
+                        <thead>
+                        <tr>
+                            <th>商品码</th>
+                            <th>次数</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var liHtml = '<li role="presentation" class="active" ><a href="#first" data-toggle="tab">未分类结果</a></li>';
+    $(function () {
+        $('#tabsUl').html(liHtml);
+        $('#clearBtn').on('click', function(){
+            $('#first #showContent tbody').empty();
+            var navHtml = $('#first').prop("outerHTML");
+            $('#tabContentDiv').html(navHtml);
+            $('.tab-content[id!="tabContentDiv"]').remove();
+            $('#tabsUl').html(liHtml);
+        });
+        $('#content').focus();
+        $('#content').on('keydown', function () {
+            if (event.keyCode == 13){
+                var value = $(this).val();
+                if (value) {
+                    addNav(value);
+                    if ($('#showContent-' + value).html()) {
+                        changeTr('showContent', value);
+                    } else {
+                        appendTr('showContent', value);
+                    }
+                    $(this).val('');
+                    play();
+                }
+            }
+        });
+
+        function changeTr(id, value) {
+            var i = $('#' + id + '-' + value + ' td.result').attr('data-value');
+            i++;
+            $('#' + id + '-'  + value + ' td.result').attr('data-value', i);
+            $('#' + id + '-'  + value + ' td.result').html(i);
+        }
+
+        function addNav(value) {
+            if (value.indexOf('-') > 0) {
+                var valueSplit = value.split('-');
+                if (valueSplit.length == 3) {
+                    var num = valueSplit[0], color = valueSplit[1], size = valueSplit[2];
+                    var id = num + '-' + color;
+                    if ($('#' + id + 'li').html()) {
+                        if ($('#' + id + '-showContent-' + value).html()) {
+                            changeTr(id + '-showContent', value);
+                        } else {
+                            appendTr(id + '-showContent', value);
+                        }
+                    } else {
+                        $('#tabsUl').append('<li role="presentation" id="' + id + 'li"><a href="#' + id + '" data-toggle="tab">' + id + '</a></li>');
+                        $('#tabContentDiv').append('<div class="tab-pane fade in" id="' + num + '-' + color + '">' +
+                                '<table class="table" id="' + id + '-showContent">' +
+                                    '<thead>'+
+                                    '<tr>'+
+                                    '<th>商品码</th>'+
+                                    '<th>次数</th>'+
+                                    '</tr>'+
+                                    '</thead>'+
+                                    '<tbody></tbody>'+
+                                '</table>' +
+                            '</div>');
+                        appendTr(id + '-showContent', value);
+                    }
+                }
+            }
+        }
+
+        function appendTr(id, value) {
+            var sort = replaceVal(value, '-', ''),
+                result = '<tr id="' + id + '-' + value + '" sort="' + sort + '"><td>' + value + '</td><td class="result" data-value="1">1</td></tr>';
+            if ($('#' + id + ' tbody tr').length == 0) {
+                $('#' + id + ' tbody').append(result);
+            } else {
+                var minId = id + '-' + value, currentMinId = $('#'+id+' tbody tr:first').attr('id');
+                $('#'+ id +' tbody tr').each(function() {
+                    var currentSort = $(this).attr('sort'),
+                        currentid = $(this).attr('id');
+                    if (compareStr(sort, currentSort) == 1) {
+                        minId = currentid;
+                    }
+                });
+                if (minId == (id + '-' + value)) {
+                    $('#' + currentMinId).before(result);
+                } else {
+                    $('#' + minId).after(result);
+                }
+            }
+        }
+
+        function compareStr(char1, char2) {
+            if (char1.length > char2.length) {
+                return 1;
+            }
+            if (char1.length < char2.length) {
+                return -1;
+            }
+
+            if (getCharCode(char1) > getCharCode(char2)) {
+                return 1;
+            } else {
+                return -1;
+            }
+        }
+
+        function getCharCode(char){
+            var result = 0, resulthelp = Math.pow(10, char.length);
+            for (var i = 0; i < char.length; i++) {
+                result += char.charCodeAt(i) * resulthelp;
+                resulthelp /= 10;
+            }
+            return result;
+        }
+        function replaceVal(value, str, repStr){
+            if (value.indexOf(str) > 0) {
+                value = value.replace(str, repStr);
+                return replaceVal(value, str, repStr);
+            }
+            return value;
+        }
+        function play(){
+            //非IE内核浏览器
+            var strAudio = "<audio id='audioPlay' src='../resources/水泡提示声音.wav' hidden='true'>";
+            if ( $( "body" ).find( "audio" ).length <= 0 )
+                $( "body" ).append( strAudio );
+            var audio = document.getElementById( "audioPlay" );
+            audio.volume = 1.0;
+            //浏览器支持 audion
+            audio.currentTime = 0;
+            audio.play();
+        }
+    })
+</script>
+</body>
+</html>

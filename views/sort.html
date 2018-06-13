@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script>window.$ = window.jQuery = require("../plugins/jquery/jquery-3.2.1.js");</script>
+    <script src="../plugins/bootstrap/js/bootstrap.js"></script>
+    <link rel="stylesheet" type="text/css" href="../plugins/bootstrap/css/bootstrap.css"/>
+</head>
+<body>
+<div class="container theme-showcase">
+    <div class="page-header">
+        <div class="starter-template">
+            <div class="form-group">
+                <input type="text" class="form-control" id="content"/>
+            </div>
+            <button class="btn btn-default" type="button" id="clearBtn">清空内容</button>
+            <h3>扫描后的内容：</h3>
+            <ul class="nav nav-tabs" id="goodsNav">
+                <li role="presentation" class="active"><a href="#totalResult" data-toggle="tab">未分类结果</a></li>
+            </ul>
+            <div class="tab-content" id="goodsContent">
+                <div class="tab-pane fade in active" id="totalResult">
+                    <table class="table" id="showContent">
+                        <thead>
+                        <tr>
+                            <th>商品码</th>
+                            <th>数量</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var map = new Map();
+    function addNav(source){
+        var sourceArray = source.split('-');
+        if($(`#${sourceArray[0]}-totalResult`).html()) {
+            if ($(`#${sourceArray[0]}-${sourceArray[1]}-totalResult`).html()) {
+
+            } else {
+                let minId = `${sourceArray[0]}-${sourceArray[1]}-li`, currentMinId = $(`#${sourceArray[0]}-goodsNav li:first`).attr('id'),
+                    result = `<li role="presentation" id="${sourceArray[0]}-${sourceArray[1]}-li">
+                            <a href="#${sourceArray[0]}-${sourceArray[1]}-totalResult" data-toggle="tab">${sourceArray[1]}</a>
+                        </li>`;
+                sortAddNavLi(`#${sourceArray[0]}-goodsNav li`, minId, minId, currentMinId, result, `#${sourceArray[0]}-goodsNav`);
+
+                $(`#${sourceArray[0]}-goodsContent`).append(`<div class="tab-pane fade in" id="${sourceArray[0]}-${sourceArray[1]}-totalResult">
+                        <table class="table" id="${sourceArray[0]}-${sourceArray[1]}-showContent">
+                            <thead>
+                            <tr>
+                                <th>商品码</th>
+                                <th>数量</th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>`);
+            }
+        } else {
+            let minId = `${sourceArray[0]}-li`, currentMinId = $(`#goodsNav li:nth-child(2)`).attr('id'),
+                result = `<li role="presentation" id="${sourceArray[0]}-li"><a href="#${sourceArray[0]}-totalResult" data-toggle="tab">${sourceArray[0]}</a></li>`;
+            sortAddNavLi(`#goodsNav li`, minId, minId, currentMinId, result, `#goodsNav`);
+            $(`#goodsContent`).append(`<div class="tab-pane fade in " id="${sourceArray[0]}-totalResult">
+                    <ul class="nav nav-tabs" id="${sourceArray[0]}-goodsNav">
+                        <li role="presentation" class="active" id="${sourceArray[0]}-${sourceArray[1]}-li">
+                            <a href="#${sourceArray[0]}-${sourceArray[1]}-totalResult" data-toggle="tab">${sourceArray[1]}</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="${sourceArray[0]}-goodsContent">
+                        <div class="tab-pane fade in active" id="${sourceArray[0]}-${sourceArray[1]}-totalResult">
+                            <table class="table" id="${sourceArray[0]}-${sourceArray[1]}-showContent">
+                                <thead>
+                                <tr>
+                                    <th>商品码</th>
+                                    <th>数量</th>
+                                </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>`);
+        }
+
+        addContent(`${sourceArray[0]}-${sourceArray[1]}-showContent`, source);
+    }
+    function addContent(tableId = 'showContent', source) {
+        if ($(`#${source}-${tableId}`).html()) {
+            $(`#${source}-${tableId}  td:last`).html(`${map.get(source)}`);
+        } else {
+            let minId = `${source}-${tableId}`, currentMinId = $(`#${tableId}>tbody>tr:first`).attr('id'),
+                result = `<tr id="${source}-${tableId}"><td>${source}</td><td>${map.get(source)}</td></tr>`;
+            sortAddNavLi(`#${tableId}>tbody>tr`, minId, minId, currentMinId, result, `#${tableId} > tbody`);
+        }
+    }
+    $(function () {
+        $('#content').focus();
+        $('#content').on('keydown', function () {
+            if (event.keyCode == 13){
+                var source = $(this).val();
+                let nowIndex = map.get(source) || 0;
+                map.set(source, nowIndex + 1);
+                addNav(source);
+                addContent(undefined, source);
+                $(this).val('');
+                play();
+            }
+        });
+
+        $('#clearBtn').on('click', function(){
+            map.clear();
+            $('#goodsNav li:gt(0)').each(function(){
+                $(this).remove();
+            });
+            $('#goodsContent div:gt(0)').each(function(){
+                $(this).remove();
+            });
+            $('#showContent tbody').html('');
+            $('#goodsNav li:first').addClass('active');
+            $('#totalResult').addClass('active in');
+        });
+
+        function play(){
+            //非IE内核浏览器
+            var strAudio = "<audio id='audioPlay' src='../resources/水泡提示声音.wav' hidden='true'>";
+            if ( $( "body" ).find( "audio" ).length <= 0 )
+                $( "body" ).append( strAudio );
+            var audio = document.getElementById( "audioPlay" );
+            audio.volume = 1.0;
+            //浏览器支持 audion
+            audio.currentTime = 0;
+            audio.play();
+        }
+    });
+
+
+    function compareStr(char1, char2) {
+        if (char1.length > char2.length) {
+            return 1;
+        }
+        if (char1.length < char2.length) {
+            return -1;
+        }
+
+        if (getCharCode(char1) > getCharCode(char2)) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
+    function getCharCode(char){
+        var result = 0, resulthelp = Math.pow(10, char.length);
+        for (var i = 0; i < char.length; i++) {
+            if (char.charCodeAt(i) != '-') {
+                result += char.charCodeAt(i) * resulthelp;
+            }
+            resulthelp /= 10;
+        }
+        return result;
+    }
+
+    function sortAddNavLi(loopItems, source, minId, currentMinId, result, parentNavId){
+        $(`${loopItems}`).each(function() {
+            let currentId = $(this).attr('id');
+            if (currentId) {
+                if (compareStr(source, currentId) == 1) {
+                    minId = currentId;
+                }
+            }
+        });
+        if (minId == source) {
+            if (currentMinId) {
+                $('#' + currentMinId).before(result);
+            } else {
+                $(`${parentNavId}`).append(result);
+            }
+        } else {
+            $('#' + minId).after(result);
+        }
+    }
+</script>
+</body>
+</html>
