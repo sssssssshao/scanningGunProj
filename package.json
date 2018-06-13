@@ -1,0 +1,14 @@
+{
+  "name": "ScanningGun",
+  "version": "0.1.0",
+  "main": "main.js",
+  "description": "扫描枪扫描结果",
+  "devDependencies": {
+    "better-xlsx": "^0.7.0",
+    "electron": "1.6.11"
+  },
+  "false": {},
+  "dependencies": {
+    "xlsx": "^0.13.0"
+  }
+}
